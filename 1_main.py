@@ -170,6 +170,25 @@ class LabelTool():
             self.OldimageDir = self.imageDir
             self.entry.delete(0,END)
         self.entry.insert(0,self.imageDir)
+    #Re-naming the .png images 
+    def reName(self):
+        path =self.imageDir
+        file_num =1
+        file_extensions = 'jpg'
+        self.file_extensions = file_extensions
+        if not os.path.exists(path):
+            tkMessageBox.showinfo('Warning','Dont find the direction%s'%(path))
+        #files =
+        for file in os.listdir(path):
+            if file.split('.')[-1] == file_extensions:
+                if os.path.isfile(os.path.join(path,file))==True:
+                    new_name = file.replace(file,"%05d.%s"%(file_num,file_extensions))
+                    os.rename(os.path.join(path,file),os.path.join(path,new_name))
+                    file_num+=1
+            else:
+                tkMessageBox.showinfo('Tips',\
+                                    'this file didnt re-Name %s'%(file))
+                #print file
 
     def loadDir(self, dbg = False):
         if not dbg:
@@ -191,17 +210,17 @@ class LabelTool():
             tkMessageBox.showerror('Warnning','Using the default Label 0!')
         self.category = self.label_class
         self.imgLabel.config(text = "imgLabel = %s" %(self.label_class))
-
         #Get the imagePath
         #self.imageDir = os.path.join(r'./Images', '%03d' %(self.category))
         if not os.path.isdir(self.imageDir):
             tkMessageBox.showerror('Error','This Dir:%s doesnt exist!'%(self.imageDir))
             return 0;
+        self.reName()
         #Delete the path load
-        self.imageList = glob.glob(os.path.join(self.imageDir, '*.png'))
+        self.imageList = glob.glob(os.path.join(self.imageDir, '*.%s'%(self.file_extensions)))
         if len(self.imageList) == 0:
             tkMessageBox.showerror('Warnning',\
-                'No *.png images in this Directory:%s'%(self.imageDir))
+                'No *.%s images in this Directory:%s'%(self.file_extensions,self.imageDir))
             return
 
         # default to the 1st image in the collection
@@ -247,7 +266,7 @@ class LabelTool():
         self.tkimg = ImageTk.PhotoImage(self.img)
         self.mainPanel.config(width = max(self.tkimg.width(), 400), height = max(self.tkimg.height(), 400))
         self.mainPanel.create_image(0, 0, image = self.tkimg, anchor=NW)
-        self.progLabel.config(text = "%04d/%04d" %(self.cur, self.total))
+        self.progLabel.config(text = "Progress %04d/%04d" %(self.cur, self.total))
         #self.imgLabel.config(text = "imgLabel = %s" %())
 
         # load labels
@@ -420,7 +439,8 @@ class LabelTool():
             p :The function of the button "ChangeToXML"
             r :The function of the button "randSelect"
             l :The function of the button "labelSelect"
-
+        --Operation Document website:
+            https://github.com/OxInsky/VOCLabeling
             
         '''
         tkMessageBox.showinfo('HelpDocment','%s'%(s))
@@ -499,6 +519,7 @@ class LabelTool():
         for valline in vallines:
             _val.write(valline.split('\n')[0]+' 1\n')
         _val.close()
+        tkMessageBox.showinfo("Success!","The files in%s:"%(fileDir))
         self.listbox_.itemconfig(3, fg = 'red')
 ############################################################################################
 #
@@ -595,9 +616,9 @@ class LabelTool():
             if not os.path.isdir(savenamePathDir):
                 os.mkdir(savenamePathDir)
             savename = 'Annotations\\'+imagename+'.xml'
-
+            print savename
             #Get the imageSize
-            imgpath = os.path.join(baseDir,'Images\\001\\'+imagename_last[0])
+            imgpath = os.path.join(self.imageDir,imagename_last[0])
             img = Image.open(imgpath)
             imgSize = img.size
             f = open(savename,'w')
@@ -688,7 +709,7 @@ class LabelTool():
         fp_train.close()
         fp_val.close()
         self.imgLabel.config(text = "trainToTest=%f,trainToVal=%f" %(trainTest_gate,trainVal_gate))
-        tkMessageBox.showinfo("Success","RandSelect run succeed")
+        tkMessageBox.showinfo("Success","RandSelect run succeed，the files are in:%s"%(root + '\\Main'))
         self.listbox_.itemconfig(2, fg = 'red')
 ##    def setImage(self, imagepath = r'test2.png'):
 ##        self.img = Image.open(imagepath)
